@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "SeekTruth",
+  "version": "1.0",
+  "description": "Analyze the bias of news articles on the web.",
+  "permissions": ["scripting", "activeTab", "cookies", "tabs", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

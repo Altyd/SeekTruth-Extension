@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeekTruth</title>
+  <style>
+    body {
+   font-family: Arial, sans-serif;
+      background-color: #1c1c1e;
+      color: white;
+      margin: 0;
+      height: 100vh; /* Full viewport height */
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centers vertically */
+      align-items: center; /* Centers horizontally */
+      width: 300px;
+      height: 320px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    #analyzeButton {
+      padding: 0.75rem 1.5rem;
+      color: #ffffff;
+      border: 2px solid #3e486a;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s, border-color 0.3s;
+      border-radius: 8px;
+    }
+
+    #analyzeButton:hover {
+      background-color: #3e486a;
+    }
+
+    #results {
+      margin-top: 2rem;
+        display: none;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    #sides {
+            display: block;
+      font-size: 0.9rem;
+    }
+
+    a#resultLink {
+      display: block;
+      margin-top: 1rem;
+      color: #42a5f5;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    a#resultLink:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      max-width: 500px;
+      font-size: 0.9rem;
+    }
+
+    .footer-item {
+      text-align: center;
+    }
+
+    .footer-item p {
+      margin: 0;
+      font-weight: bold;
+    }
+
+    .footer-item span {
+      display: block;
+      margin-top: 0.5rem;
+      font-weight: normal;
+      color: #bdbdbd;
+    }
+  </style>
+  <script src="popup.js" defer></script>
+</head>
+<body>
+  <h1>SeekTruth</h1>
+  <button id="analyzeButton">Analyze Current Page</button>
+  <div id="results">
+    <h2><span id="biasScore"></span></h2>
+    <div id="sides">
+      <p>Political Leaning: <span id="politicalLeaning"></span></p>
+      <p>Reasoning: <span id="biasReasoning"></span></p>
+    </div>
+    <a id="resultLink" href="#" target="_blank">View Details</a>
+  </div>
+  <div class="footer">
+    <div class="footer-item">
+      <p>Subscription</p>
+      <span id="subscription"></span>
+    </div>
+    <div class="footer-item">
+      <p>Rank</p>
+      <span id="rank"></span>
+    </div>
+    <div class="footer-item">
+      <p>Analysis Left</p>
+      <span id="scanned"></span>
+    </div>
+  </div>
+</body>
+</html>
