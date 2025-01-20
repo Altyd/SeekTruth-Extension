@@ -163,6 +163,7 @@ async function hashEmail(email) {
 
 document.getElementById('analyzeButton').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
   chrome.scripting.executeScript(
     {
       target: { tabId: tab.id },
@@ -170,6 +171,7 @@ document.getElementById('analyzeButton').addEventListener('click', async () => {
     },
     async (results) => {
       const { url, articleText } = results[0].result;
+
       const response = await fetch('https://www.seektruth.co.za/api/analyze', {
         method: 'POST',
         headers: {
@@ -177,19 +179,30 @@ document.getElementById('analyzeButton').addEventListener('click', async () => {
         },
         body: JSON.stringify({ article: articleText, urlInput: url, emailHash: emailHash, checkthis: emailclean }),
       });
-              const data = await response.json();
+
+      const data = await response.json();
+
+      // Update extension popup with results
       document.getElementById('biasScore').textContent = data.bias;
       document.getElementById('politicalLeaning').textContent = data.politicalLeaning;
       document.getElementById('biasReasoning').textContent = data.biasReasoning;
       document.getElementById('resultLink').href = `https://seektruth.co.za/scanned/${data.slug}`;
       document.getElementById('results').style.display = 'block';
+      // Send bias content to the content script for highlighting
+      chrome.tabs.sendMessage(tab.id, { action: 'highlight', biasContent: data.biascontent });
     }
   );
 });
+
+
 
 function scrapeArticle() {
   const url = window.location.href;
   const articleText = document.body.innerText; // Simplified article scraping
   console.log(articleText);
   return { url, articleText };
+}
+
+function highlightText(biasContent) {
+
 }
