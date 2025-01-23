@@ -72,9 +72,23 @@
 }
 
 /* Remove padding-left from original rule */
-.st-paragraph-wrapper:hover .st-highlight-words {
-  text-decoration: underline;
-  text-decoration-color: #3b82f6;
+.st-highlight-words {
+  display: inline;
+  margin-right: 0.3em; /* Add space after words */
+  position: relative;
+}
+
+.st-paragraph-wrapper:hover .st-highlight-words::after {
+  content: "";
+  position: absolute;
+  left: -5%;
+  bottom: -2px;
+  width: 100%; /* 10% longer than text */
+  height: 3px;
+  background: #4E5A85;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+  border-radius: 2px;
 }
 
 /* Add hover containment */
@@ -83,7 +97,6 @@
 }
 
 .st-paragraph-wrapper:hover {
-  background: rgba(241, 245, 249, 0.5);
 }
 .st-analysis-container .st-toggle-header {
   pointer-events: auto;
