@@ -3,13 +3,13 @@
   "name": "SeekTruth",
   "version": "1.0",
   "description": "Analyze the bias of news articles on the web.",
-  "permissions": ["scripting", "activeTab", "cookies", "tabs", "storage"],
+  "permissions": ["scripting", "activeTab", "cookies", "tabs", "storage", "contextMenus"],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "/scripts/background.js"
+    "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "html/popup.html",
+    "default_popup": "popup.html",
     "default_icon": {
       "48": "icons/icon.png"
     }
@@ -17,7 +17,8 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["/scripts/content.js"],
+      "js": ["content.js"],
+      "css": ["content.css"],
       "run_at": "document_end"
     }
   ]

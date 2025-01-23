@@ -3,7 +3,6 @@ let emailclean = ""; // This will store the clean email
 
 document.addEventListener("DOMContentLoaded", async () => {
   const isLoggedIn = await checkLoginCookie();
-
   if (!isLoggedIn) {
     showLoginMessage();
     return; // Stop further execution if not logged in
@@ -87,7 +86,6 @@ async function checkLoginCookie() {
           const hashedEmail = await hashEmail(userData.email);
           emailHash = hashedEmail;
           emailclean = userData.email;
-
           // Assuming you want to set the email in an element
 
           resolve(true);

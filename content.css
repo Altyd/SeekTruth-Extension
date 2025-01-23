@@ -1,0 +1,128 @@
+.st-analysis-container {
+  border: 1px solid #4E5A85;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #1e1e1e;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.st-scanned-text {
+  color: #1c1c1e;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.st-toggle-header {
+  cursor: pointer;
+  user-select: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.st-toggle-header:hover {
+  text-decoration: underline;
+}
+
+.st-analysis-details {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #1c1c1e;
+  border-radius: 4px;
+  border: 1px solid #4E5A85;
+  color: #ffffff;
+}
+
+.st-analysis-details.st-hidden {
+  display: none;
+}
+
+.st-arrow {
+  transition: transform 0.2s;
+  font-size: 0.9em;
+}
+
+.st-paragraph-wrapper {
+  position: relative;
+  margin: 8px 0;
+  padding-left: 24px;
+  min-height: 24px; /* Ensure consistent spacing */
+}
+
+.st-analysis-trigger {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translateY(30%);
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.st-paragraph-wrapper:hover .st-analysis-trigger {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Remove padding-left from original rule */
+.st-paragraph-wrapper:hover .st-highlight-words {
+  text-decoration: underline;
+  text-decoration-color: #3b82f6;
+}
+
+/* Add hover containment */
+.st-paragraph-wrapper {
+  transition: background 0.2s ease;
+}
+
+.st-paragraph-wrapper:hover {
+  background: rgba(241, 245, 249, 0.5);
+}
+.st-analysis-container .st-toggle-header {
+  pointer-events: auto;
+}
+
+.st-analysis-container .st-toggle-header * {
+  pointer-events: none;
+}
+
+.st-paragraph-wrapper:hover {
+  z-index: 1; /* Ensure hovered paragraph stays on top */
+}
+.st-paragraph-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+.st-analysis-container {
+  z-index: 1;
+  position: relative;
+}
+.st-analysis-trigger {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.st-search-icon {
+  width: 100%;
+  height: 100%;
+  fill: #3b82f6; /* Match your color scheme */
+  transition: fill 0.2s ease;
+}
+
+.st-analysis-trigger:hover .st-search-icon {
+  fill: #2563eb; /* Darker shade on hover */
+}
+.st-analysis-trigger:hover::after {
+  left: 20px; /* Increased from 24px to account for smaller icon */
+}
