@@ -168,14 +168,14 @@ document.getElementById('analyzeButton').addEventListener('click', async () => {
       func: scrapeArticle,
     },
     async (results) => {
-      const { url, articleText } = results[0].result;
+      const { url, articleText, country } = results[0].result;
 
       const response = await fetch('https://www.seektruth.co.za/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ article: articleText, urlInput: url, emailHash: emailHash, checkthis: emailclean }),
+        body: JSON.stringify({ article: articleText, urlInput: url, emailHash: emailHash, checkthis: emailclean, country: country }),
       });
 
       const data = await response.json();
@@ -191,14 +191,13 @@ document.getElementById('analyzeButton').addEventListener('click', async () => {
     }
   );
 });
-
-
-
 function scrapeArticle() {
   const url = window.location.href;
   const articleText = document.body.innerText; // Simplified article scraping
   console.log(articleText);
-  return { url, articleText };
+  const hostname = new URL(url).hostname;
+  const country = hostname.split('.').pop()
+  return { url, articleText, country };
 }
 
 function highlightText(biasContent) {

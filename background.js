@@ -84,8 +84,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       return;
     }
     console.log("Phase 2");
-    const currentUrl = tab.url || "n/a";
     // Call your analysis API
+    const currentTab = await getCurrentTab();
+    const currentUrl = currentTab.url;
+    console.log(currentUrl);
+    const url = new URL(currentUrl);
+    const hostname = url.hostname;
+    const tld = hostname.split('.').pop();
+    const country = tld;
+    console.log("Country:", country);
     const response = await fetch('https://www.seektruth.co.za/api/analyze', {
       method: 'POST',
       headers: {
@@ -96,6 +103,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         emailHash: emailHash,
         checkthis: emailclean,
         urlInput: currentUrl,
+        country: country
       }),
     });
     
@@ -131,6 +139,15 @@ async function analyzeParagraph(text) {
   const loggedIn = await checkLoginCookie();
   if (!loggedIn) throw new Error('Not logged in');
   
+  // Get current tab URL
+  const currentTab = await getCurrentTab();
+  const currentUrl = currentTab.url;
+  console.log(currentUrl);
+  const url = new URL(currentUrl);
+  const hostname = url.hostname;
+  const tld = hostname.split('.').pop();
+  const country = tld;
+  console.log("Country:", country);
   const response = await fetch('https://www.seektruth.co.za/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -138,11 +155,21 @@ async function analyzeParagraph(text) {
       article: text,
       emailHash: emailHash,
       checkthis: emailclean,
-      urlInput: "n/a"
+      urlInput: currentUrl, // Use the obtained URL here
+      country: country
     })
   });
-  console.log("wtf")
 
   if (!response.ok) throw new Error('Analysis failed');
   return response.json();
+}
+
+// Helper function to get current tab
+function getCurrentTab() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+      else resolve(tabs[0]);
+    });
+  });
 }

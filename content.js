@@ -25,6 +25,55 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 //
+function highlightText(biasContent) {
+  const contentParts = biasContent.split(';');
+
+  contentParts.forEach(part => {
+    let [text, label] = part.split(':').map(s => s.trim());
+    text = text.replace(/^"|"$/g, ''); // Remove quotes
+    const normalizedText = text.toLowerCase().replace(/\s+/g, ' ').trim();
+    const color = label === 'Neutral' ? 'green' : label === 'Bias' ? 'red' : 'orange';
+
+    console.log(`Searching for: "${text}" (normalized: "${normalizedText}")`);
+
+    const treeWalker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      { 
+        acceptNode: (node) => {
+          const parentTag = node.parentNode.nodeName.toLowerCase();
+          return (parentTag !== 'script' && parentTag !== 'style') ?
+            NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    let found = false;
+
+    while (treeWalker.nextNode()) {
+      const node = treeWalker.currentNode;
+      const nodeText = node.nodeValue;
+      const normalizedNodeText = nodeText.toLowerCase().replace(/\s+/g, ' ').trim();
+
+      if (normalizedNodeText.includes(normalizedText)) {
+        const regex = new RegExp(`(${escapeRegExp(text)})`, 'gi');
+        const newSpan = document.createElement('span');
+        newSpan.innerHTML = nodeText.replace(regex, `<span style="background-color: ${color};" title="${label}">$1</span>`);
+        node.parentNode.replaceChild(newSpan, node);
+        found = true;
+        break; // Adjust if multiple matches are needed
+      }
+    }
+
+    if (!found) {
+      console.warn(`Text not found: "${text}"`);
+    }
+  });
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Handle messages from background script
 chrome.runtime.onMessage.addListener((message) => {
@@ -125,8 +174,6 @@ function processParagraph(paragraph) {
   // Create wrapper and preserve original positioning
   const wrapper = document.createElement('div');
   wrapper.className = 'st-paragraph-wrapper';
-  
-  // Insert wrapper before paragraph and move paragraph into wrapper
   paragraph.parentNode.insertBefore(wrapper, paragraph);
   wrapper.appendChild(paragraph);
 
@@ -140,37 +187,68 @@ function processParagraph(paragraph) {
   `;
   wrapper.appendChild(trigger);
 
-  // Process text content
-  const words = paragraph.textContent.split(/\s+/);
-  if (words.length < ANALYZE_TRIGGER_WORDS) return;
-  
-  const firstWords = words.slice(0, ANALYZE_TRIGGER_WORDS).join(' ');
-  const remainingText = words.slice(ANALYZE_TRIGGER_WORDS).join(' ');
+  // Process text content without breaking HTML
+  const fullText = paragraph.textContent;
+  const triggerWordCount = ANALYZE_TRIGGER_WORDS;
 
-  // Create highlight span
+  // Find end index of trigger words using original whitespace
+  const wordRegex = /\S+\s*/g;
+  let match;
+  let wordCounter = 0;
+  let endIndex = 0;
+
+  while ((match = wordRegex.exec(fullText)) !== null) {
+    wordCounter++;
+    endIndex = match.index + match[0].length;
+    if (wordCounter === triggerWordCount) break;
+  }
+
+  if (wordCounter < triggerWordCount) return;
+
+  // Locate the range in the DOM nodes
+  const treeWalker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+  let accumulatedLength = 0;
+  let startNode = null, startOffset = 0, endNode = null, endOffset = 0;
+
+  while (treeWalker.nextNode()) {
+    const node = treeWalker.currentNode;
+    const nodeLength = node.textContent.length;
+    if (accumulatedLength <= endIndex && accumulatedLength + nodeLength >= endIndex) {
+      startNode = node;
+      startOffset = 0;
+      endNode = node;
+      endOffset = endIndex - accumulatedLength;
+      break;
+    }
+    accumulatedLength += nodeLength;
+  }
+
+  if (!startNode) return;
+
+  // Create and apply highlight span
+  const range = document.createRange();
+  range.setStart(startNode, startOffset);
+  range.setEnd(endNode, endOffset);
+
   const highlightSpan = document.createElement('span');
   highlightSpan.className = 'st-highlight-words';
-  highlightSpan.textContent = firstWords + ' ';
 
-  // Replace paragraph content
-  const newContent = document.createDocumentFragment();
-  newContent.append(highlightSpan, remainingText);
-  paragraph.innerHTML = '';
-  paragraph.appendChild(newContent);
+  try {
+    range.surroundContents(highlightSpan);
+  } catch (e) {
+    console.error('Could not highlight text:', e);
+    return;
+  }
 
-  // Add click handler to wrapper instead of paragraph
+  // Add click handler
   wrapper.addEventListener('click', async (e) => {
-    // Only respond to clicks directly on the trigger
     if (e.target.closest('.st-analysis-trigger')) {
-      // Handle analysis click
       trigger.style.opacity = '0.5';
       try {
-        const fullText = paragraph.textContent;
         const response = await chrome.runtime.sendMessage({
           action: "analyzeParagraph",
           text: fullText
         });
-        
         if (response?.analysisData) {
           displayAnalysis(fullText, response.analysisData, wrapper);
         }
@@ -187,3 +265,4 @@ if (document.readyState === 'loading') {
 } else {
   initParagraphObserver();
 }
+
