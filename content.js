@@ -141,31 +141,59 @@ function createAnalysisElement(selectedText, analysisData) {
   return container;
 }
 //
+
+
+//ANAYLSIS OF PARAGRAPH
 // Add this at the top of the file
 const ANALYZE_TRIGGER_WORDS = 3; // Number of words to highlight
 
 // Initialize paragraph observers
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+// Optimized paragraph observer
 function initParagraphObserver() {
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver(debounce((mutations) => {
+    const paragraphs = new Set();
+    
     mutations.forEach((mutation) => {
-      if (mutation.addedNodes) {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType === 1 && node.matches('p')) {
-            processParagraph(node);
-          }
-        });
-      }
+      mutation.addedNodes.forEach(node => {
+        // Direct paragraph nodes
+        if (node.nodeType === 1 && node.matches('p')) {
+          paragraphs.add(node);
+        }
+        // Nested paragraphs
+        if (node.nodeType === 1 && node.querySelectorAll) {
+          node.querySelectorAll('p').forEach(p => paragraphs.add(p));
+        }
+      });
     });
-  });
+
+    paragraphs.forEach(processParagraph);
+  }, 100)); // 100ms debounce window
 
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
 
-  // Process existing paragraphs
-  document.querySelectorAll('p').forEach(processParagraph);
+  // Process existing paragraphs in chunks
+  const existingParas = [...document.querySelectorAll('p')];
+  const processChunk = () => {
+    const batch = existingParas.splice(0, 10); // Process 10 at a time
+    batch.forEach(processParagraph);
+    if (existingParas.length > 0) {
+      requestIdleCallback(processChunk, { timeout: 500 });
+    }
+  };
+  requestIdleCallback(processChunk, { timeout: 500 });
 }
+
 
 function processParagraph(paragraph) {
   if (paragraph.dataset.stProcessed) return;
