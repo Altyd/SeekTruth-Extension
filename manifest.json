@@ -3,7 +3,7 @@
   "name": "SeekTruth",
   "version": "1.0",
   "description": "Analyze the bias of news articles on the web.",
-  "permissions": ["scripting", "activeTab", "cookies", "tabs", "storage", "contextMenus"],
+  "permissions": ["scripting", "activeTab", "cookies", "tabs", "contextMenus"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"

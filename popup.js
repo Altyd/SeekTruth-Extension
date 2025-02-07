@@ -160,37 +160,71 @@ async function hashEmail(email) {
 
 
 document.getElementById('analyzeButton').addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  try {
+    // Show loading and hide button
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('analyzeButton').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
 
-  chrome.scripting.executeScript(
-    {
-      target: { tabId: tab.id },
-      func: scrapeArticle,
-    },
-    async (results) => {
-      const { url, articleText, country } = results[0].result;
-
-      const response = await fetch('https://www.seektruth.co.za/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // Create a minimum 5-second delay promise
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Execute script and analysis
+    const analysisPromise = new Promise((resolve, reject) => {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tab.id },
+          func: scrapeArticle,
         },
-        body: JSON.stringify({ article: articleText, urlInput: url, emailHash: emailHash, checkthis: emailclean, country: country }),
-      });
+        async (results) => {
+          try {
+            const { url, articleText, country } = results[0].result;
+            const response = await fetch('https://www.seektruth.co.za/api/analyze', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ 
+                article: articleText, 
+                urlInput: url, 
+                emailHash: emailHash, 
+                checkthis: emailclean, 
+                country: country 
+              }),
+            });
 
-      const data = await response.json();
+            const data = await response.json();
+            resolve(data);
+          } catch (error) {
+            reject(error);
+          }
+        }
+      );
+    });
 
-      // Update extension popup with results
-      document.getElementById('biasScore').textContent = data.bias;
-      document.getElementById('politicalLeaning').textContent = data.politicalLeaning;
-      document.getElementById('biasReasoning').textContent = data.biasReasoning;
-      document.getElementById('resultLink').href = `https://seektruth.co.za/scanned/${data.slug}`;
-      document.getElementById('results').style.display = 'block';
-      // Send bias content to the content script for highlighting
-      chrome.tabs.sendMessage(tab.id, { action: 'highlight', biasContent: data.biascontent });
-    }
-  );
-});
+    // Wait for both analysis and minimum 5-second delay
+    const [data] = await Promise.all([analysisPromise, delayPromise]);
+
+    // Update UI with results
+    document.getElementById('biasScore').textContent = data.bias;
+    document.getElementById('politicalLeaning').textContent = data.politicalLeaning;
+    document.getElementById('biasReasoning').textContent = data.biasReasoning;
+    document.getElementById('resultLink').href = `https://seektruth.co.za/scanned/${data.slug}`;
+    
+    // Show results and hide loader
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+    
+    // Send highlight message
+    chrome.tabs.sendMessage(tab.id, { action: 'highlight', biasContent: data.biascontent });
+
+  } catch (error) {
+    console.error('Analysis failed:', error);
+    // Show button again if there's an error
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('analyzeButton').style.display = 'block';
+  }
+})
 function scrapeArticle() {
   const url = window.location.href;
   const articleText = document.body.innerText; // Simplified article scraping
