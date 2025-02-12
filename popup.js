@@ -237,3 +237,18 @@ function scrapeArticle() {
 function highlightText(biasContent) {
 
 }
+
+document.getElementById('homeButton').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://seektruth.co.za/profile' });
+});
+
+// Add this to your popup.js
+document.getElementById('homeButton').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://seektruth.co.za/profile' });
+});
+document.getElementById('pricingButton').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://seektruth.co.za/pricing' });
+});
+document.getElementById('logoutButton').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://seektruth.co.za/profile' });
+});
